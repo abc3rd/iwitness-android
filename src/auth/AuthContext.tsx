@@ -1,81 +1,64 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiClient } from '../lib/apiClient';
+// src/auth/AuthContext.tsx
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  type ReactNode,
+} from 'react';
+import { apiClient, type AffiliateProfile } from '../lib/apiClient';
 
-type User = {
+type AuthUser = {
   email: string;
+  affiliateId: string;
+  referralUrl: string;
 };
 
 type AuthContextValue = {
-  user: User | null;
-  token: string | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password?: string) => Promise<void>;
   signOut: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const TOKEN_KEY = 'iwitness_auth_token';
-const EMAIL_KEY = 'iwitness_auth_email';
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const signIn = useCallback(async (email: string, _password?: string) => {
+    // Later: plug in real auth. For now, any email/password is accepted.
+    apiClient.setToken('mock-token');
 
-  // Load from localStorage on startup
-  useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    const storedEmail = localStorage.getItem(EMAIL_KEY);
-    if (storedToken && storedEmail) {
-      setToken(storedToken);
-      setUser({ email: storedEmail });
-      apiClient.setToken(storedToken);
-    }
+    // Every user automatically gets an affiliate profile
+    const affiliate: AffiliateProfile = await apiClient.getOrCreateAffiliate({ email });
+
+    setUser({
+      email,
+      affiliateId: affiliate.affiliate_id,
+      referralUrl: affiliate.referral_url,
+    });
   }, []);
 
-  const signIn = async (email: string, _password: string) => {
-    // TODO: replace with real Face 2 Face API call
-    const fakeToken = 'face2face-demo-token';
-
-    setToken(fakeToken);
-    setUser({ email });
-
-    localStorage.setItem(TOKEN_KEY, fakeToken);
-    localStorage.setItem(EMAIL_KEY, email);
-
-    // notify API client
-    apiClient.setToken(fakeToken);
-  };
-
-  const signOut = () => {
-    setToken(null);
+  const signOut = useCallback(() => {
     setUser(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(EMAIL_KEY);
-
-    // clear token in API client
     apiClient.setToken(null);
+  }, []);
+
+  const value: AuthContextValue = {
+    user,
+    isAuthenticated: !!user,
+    signIn,
+    signOut,
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: !!token,
-        signIn,
-        signOut,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-export const useAuth = (): AuthContextValue => {
+export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return ctx;
-};
+}

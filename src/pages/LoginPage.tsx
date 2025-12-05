@@ -1,3 +1,5 @@
+// src/pages/LoginPage.tsx
+import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -6,123 +8,210 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
+  const [mode, setMode] = useState<'signin' | 'signup'>('signup'); // default to Sign up
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsSubmitting(true);
+
+    if (!email.trim()) {
+      setError('Please enter your email.');
+      return;
+    }
 
     try {
-      await signIn(email, password);
+      setIsSubmitting(true);
+      // For now, password is not validated server-side; we just accept it.
+      await signIn(email.trim(), password);
+
+      // If signIn succeeds, send them into the app
       navigate('/', { replace: true });
     } catch (err) {
-      console.error(err);
-      setError('Unable to sign in. Please check your credentials.');
+      console.error('Sign in failed', err);
+      setError('Unable to sign in. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const title =
+    mode === 'signup' ? 'Create Your Eyewitness Access' : 'Eyewitness Access';
+  const subtitle =
+    mode === 'signup'
+      ? 'Sign up to report accidents, capture evidence, and track your referrals.'
+      : 'Sign in to report accidents, capture evidence, and track your referrals.';
+
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: 'radial-gradient(circle at top, #0f172a, #020617 55%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: 'white',
-        padding: '1.5rem',
+        background: 'radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%)',
       }}
     >
       <div
         style={{
-          maxWidth: 420,
           width: '100%',
-          background: 'rgba(15,23,42,0.9)',
-          borderRadius: 16,
-          padding: '2rem',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+          maxWidth: 420,
+          borderRadius: 24,
+          border: '1px solid #1e293b',
+          background:
+            'radial-gradient(circle at top left, rgba(234,0,234,0.15), transparent 55%), radial-gradient(circle at bottom right, rgba(38,153,254,0.15), transparent 55%), #020617',
+          padding: 32,
+          boxShadow: '0 24px 80px rgba(15,23,42,0.9)',
         }}
       >
-        <h1 style={{ fontSize: 24, marginBottom: 8 }}>iWitness – Secure Sign In</h1>
-        <p style={{ fontSize: 13, opacity: 0.8, marginBottom: 20 }}>
-          Face 2 Face encrypted channel. No public or anonymous access.
-        </p>
+        <div style={{ marginBottom: 20 }}>
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: 4,
+              textTransform: 'uppercase',
+              opacity: 0.7,
+              marginBottom: 6,
+            }}
+          >
+            U-CRASH
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{title}</div>
+          <div style={{ fontSize: 13, opacity: 0.8 }}>{subtitle}</div>
+        </div>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+        {/* Mode toggle */}
+        <div
+          style={{
+            display: 'flex',
+            borderRadius: 999,
+            border: '1px solid #1f2937',
+            padding: 2,
+            marginBottom: 18,
+            background: '#020617',
+          }}
         >
-          <label style={{ fontSize: 13 }}>
-            Email
+          <button
+            type="button"
+            onClick={() => setMode('signup')}
+            style={{
+              flex: 1,
+              borderRadius: 999,
+              border: 'none',
+              padding: '0.35rem 0.4rem',
+              fontSize: 12,
+              cursor: 'pointer',
+              background:
+                mode === 'signup'
+                  ? 'linear-gradient(90deg, #ea00ea, #2699fe, #4bce2a)'
+                  : 'transparent',
+              color: mode === 'signup' ? 'white' : '#9ca3af',
+              fontWeight: mode === 'signup' ? 600 : 500,
+            }}
+          >
+            Sign up
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('signin')}
+            style={{
+              flex: 1,
+              borderRadius: 999,
+              border: 'none',
+              padding: '0.35rem 0.4rem',
+              fontSize: 12,
+              cursor: 'pointer',
+              background:
+                mode === 'signin'
+                  ? 'linear-gradient(90deg, #ea00ea, #2699fe, #4bce2a)'
+                  : 'transparent',
+              color: mode === 'signin' ? 'white' : '#9ca3af',
+              fontWeight: mode === 'signin' ? 600 : 500,
+            }}
+          >
+            Sign in
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: 14 }}>
+            <label
+              htmlFor="email"
+              style={{ display: 'block', fontSize: 12, marginBottom: 4, opacity: 0.9 }}
+            >
+              Email
+            </label>
             <input
+              id="email"
               type="email"
-              placeholder="you@example.com"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              style={inputStyle}
+              style={{
+                width: '100%',
+                borderRadius: 999,
+                border: '1px solid #334155',
+                padding: '0.5rem 0.75rem',
+                background: '#020617',
+                color: 'white',
+                fontSize: 13,
+              }}
             />
-          </label>
-          <label style={{ fontSize: 13 }}>
-            Password
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <label
+              htmlFor="password"
+              style={{ display: 'block', fontSize: 12, marginBottom: 4, opacity: 0.9 }}
+            >
+              Password
+            </label>
             <input
+              id="password"
               type="password"
-              placeholder="••••••••"
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              style={inputStyle}
+              style={{
+                width: '100%',
+                borderRadius: 999,
+                border: '1px solid #334155',
+                padding: '0.5rem 0.75rem',
+                background: '#020617',
+                color: 'white',
+                fontSize: 13,
+              }}
             />
-          </label>
+          </div>
 
           {error && (
-            <div style={{ fontSize: 12, color: '#f97373' }}>
-              {error}
-            </div>
+            <div style={{ fontSize: 12, color: '#f97373', marginBottom: 8 }}>{error}</div>
           )}
 
           <button
             type="submit"
             disabled={isSubmitting}
             style={{
-              marginTop: 8,
-              padding: '0.6rem 1rem',
+              width: '100%',
               borderRadius: 999,
               border: 'none',
-              background: isSubmitting
-                ? 'rgba(148,163,184,0.6)'
-                : 'linear-gradient(90deg,#ea00ea,#2699fe)',
-              color: 'white',
+              marginTop: 6,
+              padding: '0.6rem 0.75rem',
+              fontSize: 14,
               fontWeight: 600,
-              cursor: isSubmitting ? 'default' : 'pointer',
+              cursor: 'pointer',
+              background: 'linear-gradient(90deg, #4bce2a, #22c55e)',
+              color: '#020617',
+              opacity: isSubmitting ? 0.7 : 1,
             }}
           >
-            {isSubmitting ? 'Signing in…' : 'Sign In'}
+            {mode === 'signup' ? 'Create account' : 'Sign in'}
           </button>
         </form>
-
-        <p style={{ fontSize: 11, opacity: 0.6, marginTop: 8 }}>
-          By continuing, you acknowledge that all sessions are logged and securely stored by Omega
-          UI / Face 2 Face.
-        </p>
       </div>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  marginTop: 4,
-  padding: '0.5rem 0.75rem',
-  borderRadius: 999,
-  border: '1px solid rgba(148,163,184,0.7)',
-  background: 'rgba(15,23,42,0.7)',
-  color: 'white',
-  fontSize: 13,
-};
