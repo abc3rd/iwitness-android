@@ -8,7 +8,7 @@ export default function SettingsPage() {
     <div>
       <h1 style={{ fontSize: 22, marginBottom: 12 }}>Settings</h1>
       <p style={{ fontSize: 13, opacity: 0.8, marginBottom: 16 }}>
-        Account and preferences for your U-CRASH Eyewitness access.
+        Account and preferences for your uCRASH iWitness Accident Sharing Portal Access.
       </p>
 
       <div
