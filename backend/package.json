@@ -1,0 +1,50 @@
+{
+  "name": "ucrash-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "UCrash + LegendaryLeads Backend API Server",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:migrate": "tsx src/config/migrate.ts",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "compression": "^1.8.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "pg": "^8.16.0",
+    "redis": "^5.5.0",
+    "stripe": "^17.7.0",
+    "qrcode": "^1.5.4",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.3",
+    "winston": "^3.17.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^7.0.3",
+    "twilio": "^5.7.0",
+    "openai": "^4.103.0",
+    "@supabase/supabase-js": "^2.86.2",
+    "ioredis": "^5.6.1",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/cors": "^2.8.18",
+    "@types/compression": "^1.7.5",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/pg": "^8.15.2",
+    "@types/qrcode": "^1.5.6",
+    "@types/node": "^24.10.1",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^6.4.17",
+    "tsx": "^4.19.4",
+    "typescript": "~5.9.3"
+  }
+}
