@@ -1,0 +1,25 @@
+{
+  "name": "ucrash-installer",
+  "version": "1.0.0",
+  "description": "UCrash iWitness One-Click Installer",
+  "main": "setup.js",
+  "bin": "setup.js",
+  "scripts": {
+    "build:js": "npx tsc setup.ts --outDir . --module commonjs --target ES2022 --esModuleInterop --skipLibCheck",
+    "build:exe:win": "npm run build:js && npx pkg setup.js --targets node22-win-x64 --output UCrash-Installer-Win.exe",
+    "build:exe:mac": "npm run build:js && npx pkg setup.js --targets node22-macos-x64 --output UCrash-Installer-Mac",
+    "build:exe:linux": "npm run build:js && npx pkg setup.js --targets node22-linux-x64 --output UCrash-Installer-Linux",
+    "build:exe:all": "npm run build:js && npx pkg setup.js --targets node22-win-x64,node22-macos-x64,node22-linux-x64 --out-path dist/",
+    "build:nexe:win": "npm run build:js && npx nexe setup.js -t windows-x64 -o UCrash-Installer.exe",
+    "build:caxa": "npx caxa --input . --output UCrash-Installer.exe -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/setup.js\""
+  },
+  "pkg": {
+    "assets": [],
+    "outputPath": "dist"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "~5.9.3",
+    "pkg": "^5.8.1"
+  }
+}

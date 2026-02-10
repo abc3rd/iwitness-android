@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Backend API
+  api:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://ucrash:ucrash@postgres:5432/ucrash
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev-secret-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  # Frontend (Vite dev server)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://localhost:3001
+      - VITE_SUPABASE_URL=
+      - VITE_SUPABASE_ANON_KEY=
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+
+  # PostgreSQL + PostGIS
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ucrash
+      POSTGRES_PASSWORD: ucrash
+      POSTGRES_DB: ucrash
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ucrash"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
